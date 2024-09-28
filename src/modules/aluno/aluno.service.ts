@@ -4,15 +4,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateAlunoDto } from './dto/create-aluno.dto';
 import { Aluno } from './entities/aluno.entity';
 import { UpdateAlunoDto } from './dto/update-aluno.dto';
+import { CursoAluno } from '../curso_aluno/entities/curso_aluno.entity';
 
 @Injectable()
 export class AlunoService {
   constructor(
     @InjectRepository(Aluno)
     private alunoRepository: Repository<Aluno>,
+
+    @InjectRepository(CursoAluno) 
+    private cursoAlunoRepository: Repository<CursoAluno>,
   ) {}
 
-  create(createAlunoDto: CreateAlunoDto): Promise<Aluno> {
+  async create(createAlunoDto: CreateAlunoDto): Promise<Aluno> {
     const aluno = this.alunoRepository.create(createAlunoDto);
     return this.alunoRepository.save(aluno);
   }
@@ -30,13 +34,23 @@ export class AlunoService {
   }
 
   async update(codigo: number, updateAlunoDto: UpdateAlunoDto): Promise<Aluno> {
-    const aluno = await this.findOne(codigo);
+    const aluno = await this.findOne(codigo); 
     Object.assign(aluno, updateAlunoDto);
     return this.alunoRepository.save(aluno);
   }
 
   async remove(codigo: number): Promise<void> {
-    const aluno = await this.findOne(codigo);
-    await this.alunoRepository.remove(aluno);
+  const aluno = await this.findOne(codigo);
+
+  const cursosMatriculados = await this.cursoAlunoRepository.count({
+    where: { codigo_aluno: aluno }, 
+  });
+
+  if (cursosMatriculados > 0) {
+    throw new Error(`Não é possível excluir o aluno com código ${codigo} porque está matriculado em um curso.`);
   }
+
+  await this.alunoRepository.remove(aluno);
+}
+
 }

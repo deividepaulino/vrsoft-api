@@ -4,12 +4,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Curso } from './entities/curso.entity';
 import { CreateCursoDto } from './dto/create-curso.dto';
 import { UpdateCursoDto } from './dto/update-curso.dto';
+import { CursoAluno } from '../curso_aluno/entities/curso_aluno.entity';
 
 @Injectable()
 export class CursoService {
   constructor(
     @InjectRepository(Curso)
     private cursoRepository: Repository<Curso>,
+    @InjectRepository(CursoAluno) 
+    private cursoAlunoRepository: Repository<CursoAluno>,
   ) {}
 
   create(createCursoDto: CreateCursoDto): Promise<Curso> {
@@ -37,7 +40,18 @@ export class CursoService {
 
  
   async remove(codigo: number): Promise<void> {
-    const curso = await this.findOne(codigo);
-    await this.cursoRepository.remove(curso);
+  const curso = await this.findOne(codigo);
+
+  // Verifica se há alunos matriculados no curso como regra de negócio
+  const alunosMatriculados = await this.cursoAlunoRepository.count({
+    where: { codigo_curso: curso }, 
+  });
+
+  if (alunosMatriculados > 0) {
+    throw new Error(`Não é possível excluir o curso com código ${codigo} porque possui alunos matriculados.`);
   }
+
+  await this.cursoRepository.remove(curso);
+}
+
 }
