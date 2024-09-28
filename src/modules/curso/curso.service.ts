@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Curso } from './entities/curso.entity';
@@ -48,7 +48,7 @@ export class CursoService {
   });
 
   if (alunosMatriculados > 0) {
-    throw new Error(`Não é possível excluir o curso com código ${codigo} porque possui alunos matriculados.`);
+    throw new BadRequestException(`Não é possível excluir o curso com código ${codigo} porque possui alunos matriculados.`);
   }
 
   await this.cursoRepository.remove(curso);
