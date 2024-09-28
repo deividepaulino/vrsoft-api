@@ -59,4 +59,28 @@ export class CursoAlunoService {
     const cursoAluno = await this.findOne(codigo);
     await this.cursoAlunoRepository.remove(cursoAluno);
   }
+
+    async findTopCursos(): Promise<{ descricao: string; totalAlunos: number }[]> {
+    const cursoAlunos = await this.cursoAlunoRepository.find({ relations: ['codigo_curso'] });
+
+    const cursoCountMap: { [codigoCurso: number]: { descricao: string; totalAlunos: number } } = {};
+
+    cursoAlunos.forEach(cursoAluno => {
+      const curso = cursoAluno.codigo_curso; 
+      if (curso) {
+        const codigoCurso = curso.codigo;
+        
+        if (cursoCountMap[codigoCurso]) {
+          cursoCountMap[codigoCurso].totalAlunos++;
+        } else {
+          cursoCountMap[codigoCurso] = { descricao: curso.descricao, totalAlunos: 1 };
+        }
+      }
+    });
+
+    const sortedCursos = Object.values(cursoCountMap).sort((a, b) => b.totalAlunos - a.totalAlunos);
+
+    return sortedCursos;
+  }
+
 }
