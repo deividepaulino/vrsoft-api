@@ -7,13 +7,13 @@ export class UpdateCursoDto {
   @IsInt()
   codigo?: number;
 
-  @ApiProperty({ description: 'Descrição do curso', example: 'Curso de NestJS', maxLength: 50, required: false })
+  @ApiProperty({ description: 'Descrição do curso', example: 'Curso de Flutter da VRSOFT', maxLength: 50, required: false })
   @IsOptional()
   @IsString()
   @Length(1, 50)
   descricao?: string; 
 
-  @ApiProperty({ description: 'Ementa do curso', example: 'Ementa do curso de NestJS', required: false })
+  @ApiProperty({ description: 'Ementa do curso', example: 'Ementa do curso de Flutter da VRSOFT', required: false })
   @IsOptional()
   @IsString()
   ementa?: string; 
