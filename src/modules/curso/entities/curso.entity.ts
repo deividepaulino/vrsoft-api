@@ -7,7 +7,10 @@ export class Curso {
   codigo: number;
 
   @Column({ length: 100 })
-  descricao: string; 
+  descricao: string;
+
+  @Column({ type: 'text', nullable: true }) 
+  ementa: string; 
 
   @OneToMany(() => CursoAluno, (cursoAluno) => cursoAluno.codigo_curso)
   cursoAlunos: CursoAluno[];
