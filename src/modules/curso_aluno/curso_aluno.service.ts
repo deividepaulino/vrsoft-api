@@ -37,17 +37,20 @@ export class CursoAlunoService {
     return this.cursoAlunoRepository.save(cursoAluno);
   }
 
-  findAll(): Promise<CursoAluno[]> {
-    return this.cursoAlunoRepository.find();
+  async findAll(): Promise<CursoAluno[]> {
+    // Inclua as relações Aluno e Curso
+    return await this.cursoAlunoRepository.find({
+      relations: ['codigo_aluno', 'codigo_curso'], 
+    });
   }
 
   async findOne(codigo: number): Promise<CursoAluno> {
-    const cursoAluno = await this.cursoAlunoRepository.findOne({ where: { codigo } });
-    if (!cursoAluno) {
-      throw new NotFoundException(`CursoAluno com código ${codigo} não encontrado.`);
-    }
-    return cursoAluno;
-  }
+    return await this.cursoAlunoRepository.findOne({
+      where: { codigo },
+      relations: ['codigo_aluno', 'codigo_curso'], 
+    });
+  
+}
 
 async update(codigoAluno: number, updateCursoAlunoDto: UpdateCursoAlunoDto): Promise<CursoAluno> {
   let cursoAluno = await this.cursoAlunoRepository.findOne({
