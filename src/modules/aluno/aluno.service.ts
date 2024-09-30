@@ -21,9 +21,20 @@ export class AlunoService {
     return this.alunoRepository.save(aluno);
   }
 
-  findAll(): Promise<Aluno[]> {
-    return this.alunoRepository.find();
-  }
+async findAll(): Promise<any[]> {
+  const alunos = await this.alunoRepository.find({
+    relations: ['cursoAlunos', 'cursoAlunos.codigo_curso'], 
+  });
+
+  return alunos.map(aluno => ({
+    codigo: aluno.codigo,
+    nome: aluno.nome,
+    curso: aluno.cursoAlunos.length > 0  ? aluno.cursoAlunos[0].codigo_curso.descricao : 'Não matriculado',
+  }));
+}
+
+
+
 
   async findOne(codigo: number): Promise<Aluno> {
     const aluno = await this.alunoRepository.findOne({ where: { codigo } });

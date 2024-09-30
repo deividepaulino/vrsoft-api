@@ -49,11 +49,31 @@ export class CursoAlunoService {
     return cursoAluno;
   }
 
-  async update(codigo: number, updateCursoAlunoDto: UpdateCursoAlunoDto): Promise<CursoAluno> {
-    const cursoAluno = await this.findOne(codigo);
-    Object.assign(cursoAluno, updateCursoAlunoDto);
-    return this.cursoAlunoRepository.save(cursoAluno);
+async update(codigoAluno: number, updateCursoAlunoDto: UpdateCursoAlunoDto): Promise<CursoAluno> {
+  const cursoAluno = await this.cursoAlunoRepository.findOne({
+    where: {
+      codigo_aluno: { codigo: codigoAluno }, 
+    },
+    relations: ['codigo_curso'], 
+  });
+
+  if (!cursoAluno) {
+    throw new NotFoundException(`Associação entre aluno e curso não encontrada.`);
   }
+
+  if (updateCursoAlunoDto.novoCurso) {
+    const curso = await this.cursoRepository.findOne({ where: { codigo: updateCursoAlunoDto.novoCurso } });
+    if (!curso) {
+      throw new NotFoundException(`Curso com código ${updateCursoAlunoDto.novoCurso} não encontrado.`);
+    }
+    cursoAluno.codigo_curso = curso; 
+  }
+
+  return this.cursoAlunoRepository.save(cursoAluno);
+}
+
+
+
 
   async remove(codigo: number): Promise<void> {
     const cursoAluno = await this.findOne(codigo);
