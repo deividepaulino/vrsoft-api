@@ -50,7 +50,7 @@ export class CursoAlunoService {
   }
 
 async update(codigoAluno: number, updateCursoAlunoDto: UpdateCursoAlunoDto): Promise<CursoAluno> {
-  const cursoAluno = await this.cursoAlunoRepository.findOne({
+  let cursoAluno = await this.cursoAlunoRepository.findOne({
     where: {
       codigo_aluno: { codigo: codigoAluno }, 
     },
@@ -58,19 +58,32 @@ async update(codigoAluno: number, updateCursoAlunoDto: UpdateCursoAlunoDto): Pro
   });
 
   if (!cursoAluno) {
-    throw new NotFoundException(`Associação entre aluno e curso não encontrada.`);
-  }
-
-  if (updateCursoAlunoDto.novoCurso) {
+    if (!updateCursoAlunoDto.novoCurso) {
+      throw new NotFoundException(`Associação entre aluno e curso não encontrada e nenhum novo curso foi fornecido.`);
+    }
+    
     const curso = await this.cursoRepository.findOne({ where: { codigo: updateCursoAlunoDto.novoCurso } });
     if (!curso) {
       throw new NotFoundException(`Curso com código ${updateCursoAlunoDto.novoCurso} não encontrado.`);
     }
-    cursoAluno.codigo_curso = curso; 
+
+    cursoAluno = this.cursoAlunoRepository.create({
+      codigo_aluno: { codigo: codigoAluno }, 
+      codigo_curso: curso,
+    });
+  } else {
+    if (updateCursoAlunoDto.novoCurso) {
+      const curso = await this.cursoRepository.findOne({ where: { codigo: updateCursoAlunoDto.novoCurso } });
+      if (!curso) {
+        throw new NotFoundException(`Curso com código ${updateCursoAlunoDto.novoCurso} não encontrado.`);
+      }
+      cursoAluno.codigo_curso = curso; 
+    }
   }
 
   return this.cursoAlunoRepository.save(cursoAluno);
 }
+
 
 
 
